@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>A.R.I.A. - Misión Andrómeda</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: monospace;
+      text-align: center;
+      background: url('descarga.gif') no-repeat center center fixed;
+      background-size: cover;
+      color: #b3d9ff;
+    }
+    h1 {
+      margin-top: 40px;
+      font-size: 5.5em;
+      text-shadow: 0 0 15px #66ccff;
+      color: #ffffff;
+    }
+    #consola {
+      margin-top: 40px;
+      font-size: 3em;
+      text-shadow: 0 0 10px #66ccff;
+      background: rgba(0, 31, 63, 0.6);
+      display: inline-block;
+      padding: 20px 30px;
+      border-radius: 12px;
+      border: 1px solid #003366;
+    }
+    button {
+      margin-top: 25px;
+      padding: 20px 30px;
+      font-size: 2.4em;
+      background: #001f3f;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #003366;
+    }
+    button:hover {
+      background: #003366;
+    }
+    .btn-secundario {
+      background: #660000; /* rojo oscuro */
+      box-shadow: 0 0 15px #330000;
+    }
+    .btn-secundario:hover {
+      background: #990000; /* rojo más fuerte */
+    }
+  </style>
+</head>
+<body>
+  <h1>🛰️ A.R.I.A. - Misión Andrómeda</h1>
+  <div id="consola">Di <b>"Hola ARIA."</b> para iniciar o usa el botón de emergencia.</div>
+  <br>
+  <button onclick="iniciarEscucha()">🎤 Activar micrófono</button>
+  <br>
+  <button class="btn-secundario" onclick="activarManual()">⚡ Iniciar manualmente</button>
+
+  <script>
+    const consola = document.getElementById("consola");
+    let vozSeleccionada = null;
+
+    const MENSAJE_ARIA = "Saludos, explorador yo soy A.R.I.A, Asistente Robótica de Inteligencia Avanzada. Nos encontramos dentro de la estación espacial. Revisa que todos los sensores funcionen correctamente y escanea el código QR para monitorizar los sistemas.";
+
+    // Función para que A.R.I.A. "hable"
+    function ariaHabla(texto) {
+      consola.innerHTML = texto;
+      const speech = new SpeechSynthesisUtterance(texto);
+      speech.lang = "es-ES";  // voz española
+      speech.rate = 0.9;
+      speech.pitch = 1.1;
+      speech.volume = 1;
+
+      if (vozSeleccionada) {
+        speech.voice = vozSeleccionada;
+      }
+
+      speechSynthesis.cancel(); // evitar que se acumulen voces
+      speechSynthesis.speak(speech);
+    }
+
+    // Buscar voces disponibles
+    function cargarVoces() {
+      const voces = speechSynthesis.getVoices();
+      vozSeleccionada = voces.find(v =>
+        v.lang.includes("es-ES") &&
+        (v.name.toLowerCase().includes("female") ||
+         v.name.toLowerCase().includes("mujer") ||
+         v.name.toLowerCase().includes("helena") || 
+         v.name.toLowerCase().includes("google"))
+      ) || voces.find(v => v.lang.includes("es-ES"));
+    }
+    speechSynthesis.onvoiceschanged = cargarVoces;
+
+    // Reconocimiento de voz
+    function iniciarEscucha() {
+      const reconocimiento = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      reconocimiento.lang = "es-ES";
+      reconocimiento.start();
+
+      reconocimiento.onresult = function(event) {
+        const resultado = event.results[0][0].transcript.toLowerCase();
+        consola.innerHTML = "🎤 Tú dijiste: " + resultado;
+
+        if (resultado.includes("hola aria") || resultado.includes("aria")) {
+          ariaHabla(MENSAJE_ARIA);
+        } else {
+          ariaHabla("No entendí el comando. Intenta decir Hola A.R.I.A.");
+        }
+      };
+
+      reconocimiento.onerror = function(event) {
+        consola.innerHTML = "❌ Error de reconocimiento: " + event.error;
+      };
+    }
+
+    // Botón de emergencia
+    function activarManual() {
+      ariaHabla(MENSAJE_ARIA);
+    }
+  </script>
+</body>
+</html>
